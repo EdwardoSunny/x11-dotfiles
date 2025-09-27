@@ -1,5 +1,7 @@
 * Edward's X11 Dotfiles
 
+Bare minimum i3 config to have a workflow that works for me.
+
 To sync, symlink this repo to the .config directory:
 
 #+begin_src bash
