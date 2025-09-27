@@ -10,3 +10,16 @@ ln -s ~/x11-dotfiles/.config ~/.config
 Other things:
 - [[https://github.com/xremap/xremap][xremap]] (config is in the dotfiles)
 - [[https://github.com/pythops/bluetui][bluetui]] (install with cargo/rust)
+
+** xremap things
+The systemd service is already tracked in this repo under =systemd/user/=. Just run:
+#+begin_src bash
+systemctl --user daemon-reexec
+systemctl --user daemon-reload
+systemctl --user enable --now xremap.service
+#+end_src
+
+Check that its running:
+#+begin_src bash
+systemctl --user status xremap.service
+#+end_src
