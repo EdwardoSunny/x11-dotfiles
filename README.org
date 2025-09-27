@@ -1,0 +1,8 @@
+* Edward's X11 Dotfiles
+
+To sync, symlink this repo to the .config directory:
+
+#+begin_src bash
+rm -rf ~/.config/
+ln -s ~/x11-dotfiles/.config ~/.config
+#+end_src
