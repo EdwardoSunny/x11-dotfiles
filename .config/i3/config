@@ -40,6 +40,9 @@ bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOU
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
+# flameshot binding
+bindsym Print exec --no-startup-id flameshot gui
+
 # start a terminal
 bindsym $mod+Shift+Return exec i3-sensible-terminal
 
@@ -181,4 +184,7 @@ bar {
 }
 
 # wallpaper
-exec --no-startup-id feh --bg-scale ~/Pictures/wallpapers/lake.jpg 
+exec --no-startup-id feh --bg-scale ~/Pictures/wallpapers/earth.png
+
+# autostart flameshot
+exec --no-startup-id flameshot
