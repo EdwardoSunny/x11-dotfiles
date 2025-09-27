@@ -179,3 +179,6 @@ bindsym $mod+r mode "resize"
 bar {
         status_command i3status
 }
+
+# wallpaper
+exec --no-startup-id feh --bg-scale ~/Pictures/wallpapers/lake.jpg 

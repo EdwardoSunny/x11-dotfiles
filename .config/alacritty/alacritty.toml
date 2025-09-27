@@ -1,3 +1,4 @@
 [window]
-opacity = 0.8
-
+decorations           = "None"
+opacity               = 0.8
+blur                  = true

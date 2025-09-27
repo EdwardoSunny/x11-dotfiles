@@ -6,3 +6,7 @@ To sync, symlink this repo to the .config directory:
 rm -rf ~/.config/
 ln -s ~/x11-dotfiles/.config ~/.config
 #+end_src
+
+Other things:
+- [[https://github.com/xremap/xremap][xremap]] (config is in the dotfiles)
+- [[https://github.com/pythops/bluetui][bluetui]] (install with cargo/rust)
