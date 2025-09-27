@@ -1,3 +1,11 @@
 BraveSoftware/
 dconf/
 nautilus/
+user-dirs.dirs
+user-dirs.locale
+ibus/
+gtk-3.0/
+evolution/
+github-copilot/
+mimeapps.list
+pulse/
