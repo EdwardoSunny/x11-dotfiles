@@ -1,0 +1,7 @@
+modmap:
+  - name: "Caps Lock to Super (held) and Esc (tapped)"
+    remap:
+      CapsLock:
+        held: Super_L
+        alone: Esc
+        free_hold: true
