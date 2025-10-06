@@ -3,7 +3,7 @@ Description=Xremap Key Remapper
 After=graphical-session.target
 
 [Service]
-ExecStart=/home/edwardsun/.cargo/bin/xremap /home/edwardsun/.config/xremap/config.yml
+ExecStart=/home/edward/.cargo/bin/xremap /home/edward/.config/xremap/config.yml
 Restart=on-failure
 Environment=RUST_LOG=warn
 # If you are using Wayland, uncomment the next line and modify it for your compositor

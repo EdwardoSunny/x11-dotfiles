@@ -11,6 +11,7 @@ ln -s ~/x11-dotfiles/.config ~/.config
 
 Other things:
 - [[https://github.com/xremap/xremap][xremap]] (config is in the dotfiles)
+  - Read and follow instructions under =Usage= to set up running =xremap= without sudo. Otherwise, systemd service will crash since it doesn't have the correct permissions to access inputs.
 - [[https://github.com/pythops/bluetui][bluetui]] (install with cargo/rust)
 
 ** xremap things
