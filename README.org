@@ -26,3 +26,38 @@ Check that its running:
 #+begin_src bash
 systemctl --user status xremap.service
 #+end_src
+
+** nvidia things (ubuntu)
+For drivers, disable secure boot. Check via:
+#+begin_src bash
+mokutil --sb-state
+#+end_src
+
+Then first clean any broken/old deps: 
+#+begin_src bash
+sudo apt remove --purge '^nvidia-.*' 'libnvidia-.*' 'cuda-.*' -y
+sudo apt autoremove -y
+sudo apt clean
+sudo apt update && sudo apt upgrade -y
+#+end_src
+
+Check devices:
+#+begin_src bash
+ubuntu-drivers devices
+#+end_src
+
+Install the recommended driver from list:
+#+begin_src bash
+sudo apt install nvidia-driver-580-open -y
+
+# or auto install
+sudo ubuntu-drivers autoinstall
+#+end_src
+
+For laptops with hybrid graphics, use on-demand:
+#+begin_src bash
+sudo prime-select on-demand
+sudo reboot
+#+end_src
+
+Finally check with =nvidia-smi= and =xrandr= to make sure display and GPU works.
