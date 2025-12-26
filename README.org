@@ -13,6 +13,7 @@ Other things:
 - [[https://github.com/xremap/xremap][xremap]] (config is in the dotfiles)
   - Read and follow instructions under =Usage= to set up running =xremap= without sudo. Otherwise, systemd service will crash since it doesn't have the correct permissions to access inputs.
 - [[https://github.com/pythops/bluetui][bluetui]] (install with cargo/rust)
+- [[https://freedesktop.org/software/pulseaudio/pavucontrol/?__goaway_challenge=meta-refresh&__goaway_id=be949c805ff60280b9e88578ca1ace35&__goaway_referer=https%3A%2F%2Fwww.google.com%2F][pavucontrol]] (install with apt, need this for volume controls with media buttons to work)
 
 ** xremap things
 The systemd service is already tracked in this repo under =systemd/user/=. Just run:
