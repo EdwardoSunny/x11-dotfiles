@@ -2,18 +2,40 @@
 
 Bare minimum dots to have a workflow that works for me.
 
-To sync, symlink this repo to the .config directory:
+To set up a machine (Ubuntu/Debian), clone to =~/x11-dotfiles= and run:
 
 #+begin_src bash
-rm -rf ~/.config/
-ln -s ~/x11-dotfiles/.config ~/.config
+git clone git@github.com:EdwardoSunny/x11-dotfiles.git ~/x11-dotfiles
+~/x11-dotfiles/setup.sh
 #+end_src
+
+=setup.sh= is safe to re-run. It links =~/.config= to this repo (an existing =~/.config= is moved to =~/.config.bak-<date>= after asking), installs the apt packages the i3 config uses, installs the Symbols Nerd Font (bar/menu icons) into =~/.local/share/fonts=, and enables the xremap service if xremap is installed.
 
 Other things:
 - [[https://github.com/xremap/xremap][xremap]] (config is in the dotfiles)
   - Read and follow instructions under =Usage= to set up running =xremap= without sudo. Otherwise, systemd service will crash since it doesn't have the correct permissions to access inputs.
-- [[https://github.com/pythops/bluetui][bluetui]] (install with cargo/rust)
-- [[https://freedesktop.org/software/pulseaudio/pavucontrol/?__goaway_challenge=meta-refresh&__goaway_id=be949c805ff60280b9e88578ca1ace35&__goaway_referer=https%3A%2F%2Fwww.google.com%2F][pavucontrol]] (install with apt, need this for volume controls with media buttons to work)
+- [[https://github.com/pythops/bluetui][bluetui]] (install with cargo/rust; opened by clicking the bluetooth icon in the bar)
+
+** i3 bar, audio and Wi-Fi
+Everything lives in =.config/i3/scripts/= (Python stdlib only, no extra packages):
+- =statusbar.py=: the bar (cpu, mem, bluetooth, network, mic, volume, clock). Blocks hide or fall back to text when a tool, device, or the icon font is missing; if the script can't start, i3 falls back to plain =i3status=.
+- =audio.py=: media keys and the audio device picker. Volume goes through =pactl=, so it works on PipeWire and PulseAudio, and is capped at 100% (higher is digital boost that just clips). Media keys use MPRIS over =gdbus=.
+- =network.py=: Wi-Fi picker via =nmcli=; password prompts come from =nm-applet=.
+- =ui.py=: shared colors, icons, menus (=rofi= if installed, else =dmenu=), and notifications.
+
+Keys and clicks:
+| Key / click                        | Action                                              |
+|------------------------------------+-----------------------------------------------------|
+| Volume up/down/mute, mic mute      | ±5% (capped at 100%) with an OSD notification       |
+| Play/pause, next, previous, stop   | Control the active media player                     |
+| =$mod+Shift+a= / click volume      | Pick output/input device (moves playing streams)    |
+| =$mod+Shift+n= / click network     | Pick Wi-Fi network, rescan, turn Wi-Fi on/off       |
+| Scroll / middle / right on volume  | Change volume / mute / open pavucontrol             |
+| Click / right click on mic         | Mute toggle / pavucontrol inputs                    |
+| Click / right click on bluetooth   | bluetui (or blueman) / power on/off                 |
+| Click cpu or mem                   | btop, htop, or top in a terminal                    |
+
+Short device names in the bar come from =ALIASES= in =audio.py=; unmatched devices use their full name.
 
 ** xremap things
 The systemd service is already tracked in this repo under =systemd/user/=. Just run:

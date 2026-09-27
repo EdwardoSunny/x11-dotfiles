@@ -30,18 +30,32 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
 
-# Use pactl to adjust volume in PulseAudio.
-set $refresh_i3status killall -SIGUSR1 i3status
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
-bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
-bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+# Audio/media keys. Keysyms are standard XF86 names, so any keyboard (or USB
+# headset/DAC knob) with media keys works. Volume is capped at 100% and shows
+# an OSD notification; see scripts/audio.py.
+set $scripts ~/.config/i3/scripts
+bindsym XF86AudioRaiseVolume exec --no-startup-id $scripts/audio.py up
+bindsym XF86AudioLowerVolume exec --no-startup-id $scripts/audio.py down
+bindsym XF86AudioMute exec --no-startup-id $scripts/audio.py mute
+bindsym XF86AudioMicMute exec --no-startup-id $scripts/audio.py mic-mute
+bindsym XF86AudioPlay exec --no-startup-id $scripts/audio.py play-pause
+bindsym XF86AudioPause exec --no-startup-id $scripts/audio.py play-pause
+bindsym XF86AudioNext exec --no-startup-id $scripts/audio.py next
+bindsym XF86AudioPrev exec --no-startup-id $scripts/audio.py previous
+bindsym XF86AudioStop exec --no-startup-id $scripts/audio.py stop
+
+# pick audio output/input device, pick Wi-Fi network
+bindsym $mod+Shift+a exec --no-startup-id $scripts/audio.py pick
+bindsym $mod+Shift+n exec --no-startup-id $scripts/network.py pick
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
 # flameshot binding
 bindsym Print exec --no-startup-id flameshot gui
+
+# lock the screen
+bindsym $mod+Ctrl+l exec --no-startup-id loginctl lock-session
 
 # start a terminal
 bindsym $mod+Shift+Return exec i3-sensible-terminal
@@ -177,14 +191,36 @@ mode "resize" {
 
 bindsym $mod+r mode "resize"
 
-# Start i3bar to display a workspace bar (plus the system information i3status
-# finds out, if available)
+# Status bar (scripts/statusbar.py): cpu, mem, bluetooth, network, mic, volume,
+# clock. Blocks are clickable; see the header of statusbar.py. Falls back to
+# plain i3status if the script cannot start.
 bar {
-        status_command i3status
+        status_command $scripts/statusbar.py || i3status
+        position bottom
+        font pango:DejaVu Sans Mono, Symbols Nerd Font Mono 10
+        separator_symbol " "
+        workspace_min_width 28
+        tray_padding 3
+        colors {
+                background #0f0f0f
+                statusline #e6e6e6
+                separator  #3a3a3a
+                #                  border  bg      text
+                focused_workspace  #e6e6e6 #e6e6e6 #0f0f0f
+                active_workspace   #2a2a2a #2a2a2a #e6e6e6
+                inactive_workspace #0f0f0f #0f0f0f #7a7a7a
+                urgent_workspace   #d48a8a #d48a8a #0f0f0f
+                binding_mode       #e6e6e6 #e6e6e6 #0f0f0f
+        }
 }
 
 # wallpaper
-exec --no-startup-id feh --bg-scale ~/Pictures/wallpapers/earth.png
+exec --no-startup-id feh --bg-center ~/x11-dotfiles/quanxi.jpg
 
 # autostart flameshot
 exec --no-startup-id flameshot
+exec --no-startup-id picom
+
+# clipboard manager (holds X11 CLIPBOARD selection; fixes Alacritty
+# "Failed to set new owner of XCB selection" warning under i3)
+exec --no-startup-id parcellite
