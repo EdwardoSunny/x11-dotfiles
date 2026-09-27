@@ -220,3 +220,25 @@ exec --no-startup-id picom
 # clipboard manager (holds X11 CLIPBOARD selection; fixes Alacritty
 # "Failed to set new owner of XCB selection" warning under i3)
 exec --no-startup-id parcellite
+
+# >>> Handy speech-to-text (https://handy.computer)
+# Push-to-talk = HOLD Alt+Enter, speak, release. That shortcut is grabbed by Handy
+# itself (settings_store.json "transcribe" binding) because i3 cannot bind key-hold;
+# do not bind Mod1+Return in i3 or Handy's grab fails.
+# Settings live in ~/.local/share/com.pais.handy/settings_store.json: overlay_style "live"
+# (pill showing the text as it is transcribed), overlay_position "top" (at the bottom the
+# pill lands under the bar: i3 gives the overlay a 400x200 window, Handy positions it as
+# 120 tall), transcribe_accelerator "auto" (GPU via Vulkan, CPU fallback).
+exec --no-startup-id handy --start-hidden
+# Overlay window "Recording": float it without border/focus so it never tiles or steals input.
+for_window [class="^Handy$" title="^Recording$"] floating enable, sticky enable, border pixel 0
+no_focus [class="^Handy$" title="^Recording$"]
+# Hands-free fallback: press once to start, again to stop; $mod+Shift+Escape cancels.
+bindsym $mod+Shift+t exec --no-startup-id handy --toggle-transcription
+bindsym $mod+Shift+Escape exec --no-startup-id handy --cancel
+# <<< Handy
+
+# >>> omp browser-relay: agent browser window lives on its own workspace, never takes focus (clanker chrome-relay skill)
+for_window [title="^omp automation"] move container to workspace omp
+no_focus [title="^omp automation"]
+# <<< omp browser-relay

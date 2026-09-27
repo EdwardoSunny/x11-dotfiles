@@ -38,8 +38,16 @@ Keys and clicks:
 | Click / right click on mic         | Mute toggle / pavucontrol inputs                    |
 | Click / right click on bluetooth   | bluetui (or blueman) / power on/off                 |
 | Click cpu or mem                   | btop, htop, or top in a terminal                    |
+| Hold =Alt+Enter=                   | Dictate with Handy (release to type the text)       |
+| =$mod+Shift+t= / =$mod+Shift+Escape= | Handy hands-free start/stop / cancel              |
 
 Short device names in the bar come from =ALIASES= in =audio.py=; unmatched devices use their full name.
+
+** Handy (speech to text)
+[[https://handy.computer][Handy]] is not an apt package: install the =.deb= from its [[https://github.com/cjpais/Handy/releases][releases]] (=sudo apt install ./Handy_<ver>_amd64.deb=). i3 starts it hidden and floats its =Recording= overlay (see the =Handy= block in =.config/i3/config=). Its settings are not in this repo (=~/.local/share/com.pais.handy/settings_store.json=); set these in the app:
+- Transcribe shortcut =alt+enter=, push to talk on. Don't bind =Mod1+Return= in i3, or Handy can't grab it.
+- Overlay style *Live* (shows the text while you speak), position *Top*: at the bottom the pill ends up under the i3 bar.
+- Model *Parakeet Unified EN 0.6B* (streams, so the live text works), accelerator *Auto* (GPU through Vulkan, CPU fallback). The first few transcriptions after installing a model or driver are slow while the NVIDIA driver compiles its shaders; after that they take ~0.1 s.
 
 ** xremap things
 The systemd service is already tracked in this repo under =systemd/user/=. Just run:
