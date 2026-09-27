@@ -5,8 +5,10 @@
     bg:          rgba(15, 15, 15, 70%);
     field:       rgba(230, 230, 230, 7%);
     selected:    rgba(230, 230, 230, 14%);
+    current:     rgba(230, 230, 230, 6%);
     edge:        rgba(230, 230, 230, 12%);
     fg:          #e6e6e6;
+    soft:        #b4b4b4;
     dim:         #8a8a8a;
 
     font:             "DejaVu Sans Mono 11";
@@ -19,7 +21,7 @@
 
 window {
     location:         center;
-    width:            560px;
+    width:            640px;
     background-color: @bg;
     border:           1px;
     border-color:     @edge;
@@ -62,10 +64,16 @@ element {
     border-radius: 8px;
 }
 
+/* plain rows are soft grey; the current item (e.g. connected network, default
+ * audio device) is bright on a faint background; the cursor row is brightest */
 element normal.normal, element alternate.normal,
-element normal.active, element alternate.active,
 element normal.urgent, element alternate.urgent {
     background-color: transparent;
+    text-color:       @soft;
+}
+
+element normal.active, element alternate.active {
+    background-color: @current;
     text-color:       @fg;
 }
 
@@ -85,9 +93,10 @@ element-text {
 }
 
 message {
-    padding: 4px 12px;
+    padding: 0 12px;
 }
 
 textbox {
+    font:       "DejaVu Sans Mono 9";
     text-color: @dim;
 }

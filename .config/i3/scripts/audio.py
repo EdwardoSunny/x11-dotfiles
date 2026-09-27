@@ -139,22 +139,25 @@ def _set_default(kind, name):
 
 def pick():
     """Menu of outputs and inputs; the chosen one becomes the default."""
-    entries = {}
+    entries, active = {}, []
     for kind, icon_name, title in (("sinks", "speaker", "Output"), ("sources", "mic", "Input")):
         default = _default_name(kind)
         for node in _nodes(kind):
             if node["monitor"]:
                 continue
-            mark = f"  {ui.icon('selected')}" if node["name"] == default else ""
-            line = f"{ui.icon(icon_name)}  {title}: {node['description']}{mark}"
+            base = line = f"{ui.icon(icon_name)}  {title}: {node['description']}"
+            n = 2
+            while line in entries:  # two identical devices
+                line, n = f"{base} ({n})", n + 1
+            if node["name"] == default:
+                active.append(len(entries))
             entries[line] = (kind, node)
-    mixer = f"{ui.icon('settings')}  Open mixer (pavucontrol)"
-    lines = list(entries) + ([mixer] if ui.have("pavucontrol") else [])
     if not entries:
         ui.notify("No audio devices found", "Is pipewire-pulse or pulseaudio running?")
         return
-    choice = ui.menu("Audio", lines)
-    if choice == mixer:
+    keys = [("Alt+m", "mixer", "mixer")] if ui.have("pavucontrol") else []
+    choice, action = ui.menu("Audio", list(entries), active=active, keys=keys)
+    if action == "mixer":
         ui.spawn("pavucontrol")
     elif choice in entries:
         kind, node = entries[choice]

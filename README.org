@@ -21,7 +21,7 @@ Everything lives in =.config/i3/scripts/= (Python stdlib only, no extra packages
 - =statusbar.py=: the bar (cpu, mem, bluetooth, network, mic, volume, clock). Blocks hide or fall back to text when a tool, device, or the icon font is missing; if the script can't start, i3 falls back to plain =i3status=.
 - =launcher.py=: =$mod+space=; =rofi -show drun= if rofi is installed, else =dmenu_run=.
 - =audio.py=: media keys and the audio device picker. Volume goes through =pactl=, so it works on PipeWire and PulseAudio, and is capped at 100% (higher is digital boost that just clips). Media keys use MPRIS over =gdbus=.
-- =network.py=: Wi-Fi picker via =nmcli=. The list opens instantly from NetworkManager's last scan (=Rescan= for a fresh one). Saved networks connect through their saved profile (even if the profile name differs from the SSID); new secured networks ask for the password in a masked prompt, and a failed attempt doesn't leave a profile with a wrong password behind. Enterprise (802.1X) networks open =nm-connection-editor=.
+- =network.py=: Wi-Fi picker via =nmcli=. The menu opens instantly with NetworkManager's cached networks and a fresh scan (~10 s) fills in the rest live (with dmenu, which can't update, it waits for the scan). Hotkeys shown in the menu: =alt+h= hidden network, =alt+d= disconnect, =alt+w= Wi-Fi off, =alt+e= connection editor (the audio picker has =alt+m= for pavucontrol). Saved networks connect through their saved profile (even if the profile name differs from the SSID); new secured networks ask for the password in a masked prompt, and a failed attempt doesn't leave a profile with a wrong password behind. Enterprise (802.1X) networks open =nm-connection-editor=.
 - =ui.py=: shared colors, icons, menus (=rofi= if installed, else =dmenu=), prompts, and notifications.
 
 Look: monochrome. rofi uses =.config/rofi/themes/minimal.rasi= (translucent); =.config/picom/picom.conf= adds a blur behind rofi only (glx backend, everything else is picom's defaults).
@@ -33,7 +33,7 @@ Keys and clicks:
 | Volume up/down/mute, mic mute      | ±5% (capped at 100%) with an OSD notification       |
 | Play/pause, next, previous, stop   | Control the active media player                     |
 | =$mod+Shift+a= / click volume      | Pick output/input device (moves playing streams)    |
-| =$mod+Shift+n= / click network     | Pick Wi-Fi network, hidden network, rescan, on/off  |
+| =$mod+Shift+n= / click network     | Pick Wi-Fi network (+ hidden, disconnect, on/off)   |
 | Scroll / middle / right on volume  | Change volume / mute / open pavucontrol             |
 | Click / right click on mic         | Mute toggle / pavucontrol inputs                    |
 | Click / right click on bluetooth   | bluetui (or blueman) / power on/off                 |

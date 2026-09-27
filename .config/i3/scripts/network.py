@@ -23,8 +23,10 @@ CONNECT_WAIT = 45  # seconds NetworkManager may take to associate + get DHCP
 def nmcli(*args, timeout=15):
     """Run nmcli; return (ok, text) where text is stdout, or the error message on failure."""
     try:
-        res = subprocess.run(["nmcli", *args], capture_output=True, text=True,
-                             timeout=timeout, env=_C_ENV)
+        # No stdin and no controlling terminal: nmcli must never stop to prompt
+        # (secrets/polkit); NetworkManager asks the desktop agent (nm-applet) instead.
+        res = subprocess.run(["nmcli", *args], capture_output=True, text=True, timeout=timeout,
+                             env=_C_ENV, stdin=subprocess.DEVNULL, start_new_session=True)
     except subprocess.TimeoutExpired:
         return False, "timed out"
     except OSError as exc:
@@ -200,41 +202,50 @@ def pick():
     ok, radio = nmcli("radio", "wifi")
     enabled = ok and radio.strip() == "enabled"
 
-    entries, actions = {}, {}
-    if enabled:
-        networks = _networks("no")  # cached scan: the menu opens instantly
-        if not networks:
-            ui.notify(f"{ui.icon('refresh')}  Scanning for networks…", tag="wifi", timeout_ms=5000)
-            networks = _networks("yes")
-        for net in networks:
-            lock = f"  {ui.icon('lock')}" if net["security"] else ""
-            mark = f"  {ui.icon('selected')}" if net["in_use"] else ""
-            entries[f"{wifi_icon(net['signal'])}  {net['ssid']}{lock}{mark}"] = net
-        actions[f"{ui.icon('refresh')}  Rescan"] = "rescan"
-        actions[f"{ui.icon('wifi_2')}  Hidden network…"] = "hidden"
-        if any(n["in_use"] for n in networks):
-            actions[f"{ui.icon('wifi_off')}  Disconnect"] = "disconnect"
-        actions[f"{ui.icon('wifi_off')}  Turn Wi-Fi off"] = "off"
-    else:
-        actions[f"{ui.icon('wifi_4')}  Turn Wi-Fi on"] = "on"
-    if ui.have("nm-connection-editor"):
-        actions[f"{ui.icon('settings')}  Edit connections"] = "edit"
+    entries = {}  # menu row -> network
 
-    choice = ui.menu("Wi-Fi", list(entries) + list(actions))
+    def rows(networks):
+        out = []
+        for net in networks:
+            if net["ssid"] in (n["ssid"] for n in entries.values()):
+                continue
+            lock = f"  {ui.icon('lock')}" if net["security"] else ""
+            line = f"{wifi_icon(net['signal'])}  {net['ssid']}{lock}"
+            entries[line] = net
+            out.append(line)
+        return out
+
+    editor = [("Alt+e", "edit", "edit")] if ui.have("nm-connection-editor") else []
+    if enabled:
+        # NetworkManager's cache usually holds little more than the current network
+        # (background scans are rare while connected) and a real scan takes ~10 s.
+        # So open the menu on the cache right away and let the scan append the rest.
+        cached = _networks("no")
+        first = rows(cached)
+        connected = any(n["in_use"] for n in cached)
+
+        def scan():
+            if not ui.have("rofi"):  # dmenu can't update live; say why it's slow
+                ui.notify(f"{ui.icon('refresh')}  Scanning for networks…", tag="wifi", timeout_ms=10000)
+            return rows(_networks("yes"))
+
+        keys = [("Alt+h", "hidden", "hidden")]
+        if connected:
+            keys.append(("Alt+d", "disconnect", "disconnect"))
+        keys += [("Alt+w", "off", "wi-fi off")] + editor
+        active = [i for i, line in enumerate(first) if entries[line]["in_use"]]
+        choice, action = ui.menu("Wi-Fi", first, active=active, more=scan, keys=keys)
+    else:
+        choice, action = ui.menu("Wi-Fi", [f"{ui.icon('wifi_4')}  Turn Wi-Fi on"], keys=editor)
+        if choice:
+            action = "on"
+
     if choice in entries:
         net = entries[choice]
         if net["in_use"]:
             ui.notify(f"{ui.icon('wifi_4')}  Already connected", net["ssid"], tag="wifi")
         else:
             connect(net["ssid"], net["security"], dev)
-        return
-    action = actions.get(choice)
-    if action == "rescan":
-        ui.notify(f"{ui.icon('refresh')}  Scanning for networks…", tag="wifi", timeout_ms=5000)
-        nmcli("device", "wifi", "rescan", "ifname", dev, timeout=15)
-        # rescan returns before results land; listing with --rescan yes waits for them
-        _networks("yes")
-        pick()
     elif action == "hidden":
         ssid = ui.ask("Hidden network name (SSID)")
         if ssid:

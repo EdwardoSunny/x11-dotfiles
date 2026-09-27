@@ -3,10 +3,12 @@
 Stdlib only. Every external tool is optional; callers check `have()` first.
 """
 import fcntl
+import html
 import os
 import shutil
 import subprocess
 import sys
+import threading
 
 # Monochrome palette shared by the bar and the menus (keep in sync with
 # `bar { colors }` in ../config). Color only for warnings.
@@ -74,7 +76,8 @@ def run(*cmd, timeout=3, env=None):
     """Run a command and return stdout ("" on any failure)."""
     try:
         return subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout, env=env
+            cmd, capture_output=True, text=True, timeout=timeout, env=env,
+            stdin=subprocess.DEVNULL,
         ).stdout
     except (OSError, subprocess.TimeoutExpired):
         return ""
@@ -122,17 +125,75 @@ def _run_menu(cmd, text):
     return res.stdout.rstrip("\n") if res.returncode == 0 else None
 
 
-def menu(prompt, lines):
-    """Show a vertical menu (rofi if installed, else dmenu); return the chosen line or None."""
+def menu(prompt, lines, active=(), more=None, keys=()):
+    """Pick one item with rofi (or dmenu). Returns (line, key): the chosen line or
+    None, and the name of the hotkey action if one was used instead.
+
+    lines   rows shown immediately
+    active  indices of "current" rows (highlighted in rofi, marked in dmenu)
+    more    optional callable returning extra rows (e.g. a slow Wi-Fi scan); rofi
+            opens at once and appends them live, dmenu waits for them first
+    keys    [(binding, name, label)] extra actions: rofi hotkeys listed under the
+            input (e.g. "Alt+d"), dmenu extra rows
+    """
+    lines = list(lines)
     if have("rofi"):
-        cmd = ["rofi", "-dmenu", "-i", "-no-custom", "-format", "s", "-p", prompt]
-    elif have("dmenu"):
-        cmd = ["dmenu", "-l", str(min(len(lines), 15)), *dmenu_args(prompt)]
-    else:
-        notify("No menu program", "Install rofi or dmenu.")
-        return None
-    choice = _run_menu(cmd, "\n".join(lines))
-    return choice if choice in lines else None
+        return _rofi_menu(prompt, lines, active, more, keys)
+    if have("dmenu"):
+        return _dmenu_menu(prompt, lines, active, more, keys)
+    notify("No menu program", "Install rofi or dmenu.")
+    return None, None
+
+
+def _rofi_menu(prompt, lines, active, more, keys):
+    # No -no-custom or -selected-row: with either, rofi waits for the end of input
+    # before drawing. Typed text that matches no row is rejected below instead.
+    cmd = ["rofi", "-dmenu", "-i", "-format", "s", "-p", prompt,
+           "-async-pre-read", "0"]  # show rows as they arrive
+    if active:
+        cmd += ["-a", ",".join(map(str, active))]
+    for n, (binding, _, _) in enumerate(keys, 1):
+        cmd += [f"-kb-custom-{n}", binding]
+    if keys:
+        cmd += ["-mesg", html.escape("  ·  ".join(f"{b.lower()} {label}" for b, _, label in keys))]
+    try:
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    except OSError:
+        return None, None
+    shown = list(lines)
+
+    def feed():
+        try:
+            proc.stdin.write("".join(line + "\n" for line in lines))
+            proc.stdin.flush()
+            if more:
+                extra = more()
+                shown.extend(extra)  # before writing, so a pick of a new row is recognized
+                proc.stdin.write("".join(line + "\n" for line in extra))
+            proc.stdin.close()
+        except (OSError, ValueError):  # rofi already closed (user picked early)
+            pass
+
+    threading.Thread(target=feed, daemon=True).start()
+    choice = proc.stdout.read().rstrip("\n")
+    code = proc.wait()
+    if 10 <= code < 10 + len(keys):  # kb-custom-N exits with 9 + N
+        return None, keys[code - 10][1]
+    return (choice if code == 0 and choice in shown else None), None
+
+
+def _dmenu_menu(prompt, lines, active, more, keys):
+    mark = f"  {icon('selected')}"
+    rows = {line + (mark if i in active else ""): line for i, line in enumerate(lines)}
+    for line in more() if more else []:
+        rows[line] = line
+    actions = {label: name for _, name, label in keys}
+    options = list(rows) + list(actions)
+    choice = _run_menu(["dmenu", "-l", str(min(len(options), 15)), *dmenu_args(prompt)],
+                       "\n".join(options))
+    if choice in actions:
+        return None, actions[choice]
+    return rows.get(choice), None
 
 
 def ask(prompt, secret=False):
