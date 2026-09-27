@@ -2,8 +2,11 @@
 
 Stdlib only. Every external tool is optional; callers check `have()` first.
 """
+import fcntl
+import os
 import shutil
 import subprocess
+import sys
 
 # Monochrome palette shared by the bar and the menus (keep in sync with
 # `bar { colors }` in ../config). Color only for warnings.
@@ -44,7 +47,7 @@ _ICONS = {
     "mem": ("\U000F061A", "mem"),
     "settings": ("\U000F0493", "~"),
     "refresh": ("\U000F0450", "~"),
-    "selected": ("\u25cf", "*"),
+    "selected": ("\U000F012C", "(current)"),
 }
 
 
@@ -104,25 +107,59 @@ def open_in_terminal(*cmd):
     spawn(TERMINAL, "-e", *cmd)
 
 
+def dmenu_args(prompt):
+    """dmenu flags matching the palette (fallback when rofi isn't installed)."""
+    return ["-i", "-p", prompt, "-fn", f"{FONT}:size={FONT_SIZE + 1}",
+            "-nb", BG, "-nf", FG, "-sb", FG, "-sf", BG]
+
+
+def _run_menu(cmd, text):
+    """Run a menu program; return its selection, or None if cancelled/failed."""
+    try:
+        res = subprocess.run(cmd, input=text, capture_output=True, text=True)
+    except OSError:
+        return None
+    return res.stdout.rstrip("\n") if res.returncode == 0 else None
+
+
 def menu(prompt, lines):
     """Show a vertical menu (rofi if installed, else dmenu); return the chosen line or None."""
     if have("rofi"):
-        cmd = ["rofi", "-dmenu", "-i", "-p", prompt, "-no-custom", "-format", "s"]
+        cmd = ["rofi", "-dmenu", "-i", "-no-custom", "-format", "s", "-p", prompt]
     elif have("dmenu"):
-        cmd = [
-            "dmenu", "-i", "-l", str(min(len(lines), 15)), "-p", prompt,
-            "-fn", f"{FONT}:size={FONT_SIZE + 1}",
-            "-nb", BG, "-nf", FG, "-sb", ACCENT, "-sf", BG,
-        ]
+        cmd = ["dmenu", "-l", str(min(len(lines), 15)), *dmenu_args(prompt)]
     else:
-        notify("No menu program", "Install dmenu or rofi.")
+        notify("No menu program", "Install rofi or dmenu.")
         return None
+    choice = _run_menu(cmd, "\n".join(lines))
+    return choice if choice in lines else None
+
+
+def ask(prompt, secret=False):
+    """Prompt for one line of text (masked if `secret`); None if cancelled or empty."""
+    if have("rofi"):
+        cmd = ["rofi", "-dmenu", "-l", "0", "-p", prompt] + (["-password"] if secret else [])
+    elif secret and have("zenity"):
+        cmd = ["zenity", "--password", f"--title={prompt}"]
+    elif have("dmenu"):
+        cmd = ["dmenu", *dmenu_args(prompt)]
+        if secret:  # stock dmenu can't mask input; draw the typed text in the background color
+            cmd += ["-nf", BG, "-sf", BG]
+    else:
+        notify("No menu program", "Install rofi or dmenu.")
+        return None
+    return _run_menu(cmd, "") or None
+
+
+def single_instance(name):
+    """Exit if another copy of this picker is already open (avoids stacked menus)."""
+    runtime = os.environ.get("XDG_RUNTIME_DIR") or "/tmp"
+    lock = open(os.path.join(runtime, f"i3-{name}.lock"), "w")
     try:
-        res = subprocess.run(cmd, input="\n".join(lines), capture_output=True, text=True)
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
-        return None
-    choice = res.stdout.rstrip("\n")
-    return choice if res.returncode == 0 and choice in lines else None
+        sys.exit(0)
+    return lock  # keep a reference: the lock lives as long as the file object
 
 
 def notify(summary, body="", tag=None, value=None, timeout_ms=1500):

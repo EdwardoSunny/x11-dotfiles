@@ -145,10 +145,10 @@ def pick():
         for node in _nodes(kind):
             if node["monitor"]:
                 continue
-            mark = ui.icon("selected") if node["name"] == default else " "
-            line = f"{mark} {ui.icon(icon_name)}  {title}: {node['description']}"
+            mark = f"  {ui.icon('selected')}" if node["name"] == default else ""
+            line = f"{ui.icon(icon_name)}  {title}: {node['description']}{mark}"
             entries[line] = (kind, node)
-    mixer = f"  {ui.icon('settings')}  Open mixer (pavucontrol)"
+    mixer = f"{ui.icon('settings')}  Open mixer (pavucontrol)"
     lines = list(entries) + ([mixer] if ui.have("pavucontrol") else [])
     if not entries:
         ui.notify("No audio devices found", "Is pipewire-pulse or pulseaudio running?")
@@ -206,6 +206,7 @@ def main(argv):
     if action in ("up", "down", "mute", "mic-mute"):
         change(action)
     elif action == "pick":
+        _lock = ui.single_instance("audio-picker")  # noqa: F841
         pick()
     elif action in ("play-pause", "next", "previous", "stop"):
         media(action)

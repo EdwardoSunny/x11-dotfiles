@@ -22,8 +22,9 @@ fi
 
 # ---- 2. packages ----------------------------------------------------------------
 pkgs=(
-    i3 i3status i3lock xss-lock suckless-tools  # window manager, lock, dmenu (launcher/menus)
-    feh picom flameshot parcellite         # wallpaper, compositor, screenshots, clipboard
+    i3 i3status i3lock xss-lock suckless-tools  # window manager, lock, dmenu (fallback menus)
+    rofi                                   # launcher + menus (translucent theme in .config/rofi)
+    feh picom flameshot parcellite         # wallpaper, compositor (menu blur), screenshots, clipboard
     dunst libnotify-bin                    # notifications (volume OSD)
     network-manager-gnome                  # nm-applet, nm-connection-editor (Wi-Fi)
     pulseaudio-utils pavucontrol           # pactl (PipeWire or PulseAudio), mixer

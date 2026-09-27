@@ -1,0 +1,93 @@
+/* Minimal monochrome, translucent. The blur behind it comes from picom
+ * (~/.config/picom/picom.conf); without a compositor the background is solid. */
+
+* {
+    bg:          rgba(15, 15, 15, 70%);
+    field:       rgba(230, 230, 230, 7%);
+    selected:    rgba(230, 230, 230, 14%);
+    edge:        rgba(230, 230, 230, 12%);
+    fg:          #e6e6e6;
+    dim:         #8a8a8a;
+
+    font:             "DejaVu Sans Mono 11";
+    background-color: transparent;
+    text-color:       @fg;
+    margin:  0;
+    padding: 0;
+    spacing: 0;
+}
+
+window {
+    location:         center;
+    width:            560px;
+    background-color: @bg;
+    border:           1px;
+    border-color:     @edge;
+    border-radius:    12px;
+}
+
+mainbox {
+    padding: 14px;
+    spacing: 10px;
+}
+
+inputbar {
+    children:         [ prompt, entry ];
+    padding:          9px 12px;
+    spacing:          12px;
+    background-color: @field;
+    border-radius:    8px;
+}
+
+prompt {
+    text-color: @dim;
+}
+
+entry {
+    placeholder:       "search";
+    placeholder-color: @dim;
+    cursor:            text;
+}
+
+listview {
+    lines:        8;
+    fixed-height: false;
+    scrollbar:    false;
+    spacing:      2px;
+}
+
+element {
+    padding:       7px 12px;
+    spacing:       12px;
+    border-radius: 8px;
+}
+
+element normal.normal, element alternate.normal,
+element normal.active, element alternate.active,
+element normal.urgent, element alternate.urgent {
+    background-color: transparent;
+    text-color:       @fg;
+}
+
+element selected.normal, element selected.active, element selected.urgent {
+    background-color: @selected;
+    text-color:       @fg;
+}
+
+element-icon {
+    size:           1.2em;
+    vertical-align: 0.5;
+}
+
+element-text {
+    text-color:     inherit;
+    vertical-align: 0.5;
+}
+
+message {
+    padding: 4px 12px;
+}
+
+textbox {
+    text-color: @dim;
+}

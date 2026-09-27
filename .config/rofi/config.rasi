@@ -1,0 +1,13 @@
+configuration {
+    modi: "drun,run,window";
+    show-icons: true;
+    drun-display-format: "{name}";
+    display-drun: "apps";
+    display-run: "run";
+    display-window: "windows";
+    matching: "fuzzy";
+    sort: true;
+    sorting-method: "fzf";
+}
+
+@theme "minimal"
