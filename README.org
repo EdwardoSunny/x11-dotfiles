@@ -9,7 +9,7 @@ git clone git@github.com:EdwardoSunny/x11-dotfiles.git ~/x11-dotfiles
 ~/x11-dotfiles/setup.sh
 #+end_src
 
-=setup.sh= is safe to re-run. It links =~/.config= to this repo (an existing =~/.config= is moved to =~/.config.bak-<date>= after asking), installs the apt packages the i3 config uses, installs the Symbols Nerd Font (bar/menu icons) into =~/.local/share/fonts=, and enables the xremap service if xremap is installed.
+=setup.sh= is safe to re-run. It links =~/.config= to this repo (an existing =~/.config= is moved to =~/.config.bak-<date>= after asking), installs the apt packages the i3 config uses, installs the Symbols Nerd Font (bar/menu icons) into =~/.local/share/fonts=, enables the xremap service if xremap is installed, and installs the Handy settings (asks before replacing existing ones).
 
 Other things:
 - [[https://github.com/xremap/xremap][xremap]] (config is in the dotfiles)
@@ -44,10 +44,15 @@ Keys and clicks:
 Short device names in the bar come from =ALIASES= in =audio.py=; unmatched devices use their full name.
 
 ** Handy (speech to text)
-[[https://handy.computer][Handy]] is not an apt package: install the =.deb= from its [[https://github.com/cjpais/Handy/releases][releases]] (=sudo apt install ./Handy_<ver>_amd64.deb=). i3 starts it hidden and floats its =Recording= overlay (see the =Handy= block in =.config/i3/config=). Its settings are not in this repo (=~/.local/share/com.pais.handy/settings_store.json=); set these in the app:
+[[https://handy.computer][Handy]] is not an apt package: install the =.deb= from its [[https://github.com/cjpais/Handy/releases][releases]] (=sudo apt install ./Handy_<ver>_amd64.deb=). i3 starts it hidden and floats its =Recording= overlay (see the =Handy= block in =.config/i3/config=).
+
+Needs: Handy, =xdotool= (installed by =setup.sh=; Handy sends its paste key through it, else falls back to its built-in X11 key sender), an NVIDIA driver for GPU transcription (see nvidia things; it falls back to CPU without one).
+
+Settings: Handy reads =~/.local/share/com.pais.handy/settings_store.json= (outside =~/.config=, so not linked). The repo copy is =handy/settings_store.json=; =setup.sh= copies it there when Handy isn't running. After changing settings in the app, save them back with =cp ~/.local/share/com.pais.handy/settings_store.json ~/x11-dotfiles/handy/=. All API keys in it are empty; keep it that way before committing (post-processing is off). What's set:
 - Transcribe shortcut =alt+enter=, push to talk on. Don't bind =Mod1+Return= in i3, or Handy can't grab it.
+- Paste method *Ctrl+Shift+V* (=paste_method: ctrl_shift_v=): the text goes in as one clipboard paste and the clipboard is restored afterwards. Don't use *Direct*: it types the text as fake key presses (~1 ms apart), and Alacritty/tmux drop and garble keys at that speed, so the history in the app is right but the terminal gets garbage. Not *Shift+Insert* (Alacritty pastes the mouse selection with it) or *Ctrl+V* (doesn't paste in terminals). In VS Code, ctrl+shift+v on a markdown file opens the preview instead.
 - Overlay style *Live* (shows the text while you speak), position *Top*: at the bottom the pill ends up under the i3 bar.
-- Model *Parakeet Unified EN 0.6B* (streams, so the live text works), accelerator *Auto* (GPU through Vulkan, CPU fallback). The first few transcriptions after installing a model or driver are slow while the NVIDIA driver compiles its shaders; after that they take ~0.1 s.
+- Model *Parakeet Unified EN 0.6B* (streams, so the live text works; download it in the app on a new machine), accelerator *Auto*: runs on the NVIDIA GPU through Vulkan (=Vulkan0=, check with =handy --list-devices= and =nvidia-smi=, where =handy= shows up using ~800 MiB), CPU fallback. The first few transcriptions after installing a model or driver are slow while the NVIDIA driver compiles its shaders; after that they take ~0.1 s.
 
 ** xremap things
 The systemd service is already tracked in this repo under =systemd/user/=. Just run:

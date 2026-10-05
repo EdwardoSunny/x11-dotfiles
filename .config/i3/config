@@ -225,10 +225,12 @@ exec --no-startup-id parcellite
 # Push-to-talk = HOLD Alt+Enter, speak, release. That shortcut is grabbed by Handy
 # itself (settings_store.json "transcribe" binding) because i3 cannot bind key-hold;
 # do not bind Mod1+Return in i3 or Handy's grab fails.
-# Settings live in ~/.local/share/com.pais.handy/settings_store.json: overlay_style "live"
-# (pill showing the text as it is transcribed), overlay_position "top" (at the bottom the
-# pill lands under the bar: i3 gives the overlay a 400x200 window, Handy positions it as
-# 120 tall), transcribe_accelerator "auto" (GPU via Vulkan, CPU fallback).
+# Settings live in ~/.local/share/com.pais.handy/settings_store.json (repo copy:
+# handy/settings_store.json, installed by setup.sh): overlay_style "live" (pill showing the
+# text as it is transcribed), overlay_position "top" (at the bottom the pill lands under the
+# bar: i3 gives the overlay a 400x200 window, Handy positions it as 120 tall),
+# transcribe_accelerator "auto" (GPU via Vulkan, CPU fallback), paste_method "ctrl_shift_v"
+# ("direct" types fake keys too fast for Alacritty/tmux and garbles the text).
 exec --no-startup-id handy --start-hidden
 # Overlay window "Recording": float it without border/focus so it never tiles or steals input.
 for_window [class="^Handy$" title="^Recording$"] floating enable, sticky enable, border pixel 0

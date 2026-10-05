@@ -4,6 +4,7 @@
 #   2. install the packages the i3 config uses
 #   3. install the icon font used by the bar/menus (Symbols Nerd Font)
 #   4. enable the xremap user service if xremap is installed
+#   5. install the Handy (speech to text) settings from handy/settings_store.json
 set -euo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,6 +30,7 @@ pkgs=(
     network-manager-gnome                  # nm-applet, nm-connection-editor (Wi-Fi)
     pulseaudio-utils pavucontrol           # pactl (PipeWire or PulseAudio), mixer
     libglib2.0-bin                         # gdbus (media keys via MPRIS)
+    xdotool                                # Handy sends its paste key (ctrl+shift+v) through it
     python3 fontconfig fonts-dejavu-core curl unzip
 )
 if command -v apt-get >/dev/null; then
@@ -63,6 +65,27 @@ if [ -x "$HOME/.cargo/bin/xremap" ]; then
     systemctl --user enable --now xremap.service
 else
     echo "xremap not installed; see README.org (xremap things) to install it, then re-run."
+fi
+
+# ---- 5. Handy settings -----------------------------------------------------------
+# Handy keeps its settings in memory and writes them back, so only copy while it's not running.
+handy_src="$repo/handy/settings_store.json"
+handy_dst="$HOME/.local/share/com.pais.handy/settings_store.json"
+if ! cmp -s "$handy_src" "$handy_dst"; then
+    if pgrep -x handy >/dev/null; then
+        echo "Handy is running; quit it (tray icon > Quit) and re-run to install its settings."
+    else
+        answer=y
+        if [ -e "$handy_dst" ]; then
+            read -r -p "Replace Handy settings with the repo's (old file kept as .bak-<date>)? [y/N] " answer
+            [[ "$answer" =~ ^[Yy]$ ]] && cp "$handy_dst" "$handy_dst.bak-$(date +%Y%m%d-%H%M%S)"
+        fi
+        if [[ "$answer" =~ ^[Yy]$ ]]; then
+            mkdir -p "$(dirname "$handy_dst")"
+            cp "$handy_src" "$handy_dst"
+            echo "Installed Handy settings to $handy_dst"
+        fi
+    fi
 fi
 
 echo "Done. Reload i3 with \$mod+Shift+r."
