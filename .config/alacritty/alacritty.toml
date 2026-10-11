@@ -2,3 +2,9 @@
 decorations           = "None"
 opacity               = 0.8
 blur                  = true
+
+# Shift+Enter sends ESC+CR (newline without submit in TUI apps); same as macOS
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001B\r"

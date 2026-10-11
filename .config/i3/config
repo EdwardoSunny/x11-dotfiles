@@ -53,6 +53,8 @@ floating_modifier $mod
 
 # flameshot binding
 bindsym Print exec --no-startup-id flameshot gui
+# same key as macOS (dotfiles_macos: AeroSpace alt-shift-s)
+bindsym $mod+Shift+s exec --no-startup-id flameshot gui
 
 # lock the screen
 bindsym $mod+Ctrl+l exec --no-startup-id loginctl lock-session

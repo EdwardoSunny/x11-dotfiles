@@ -26,7 +26,7 @@ Everything lives in =.config/i3/scripts/= (Python stdlib only, no extra packages
 
 Look: monochrome. rofi uses =.config/rofi/themes/minimal.rasi= (translucent); =.config/picom/picom.conf= adds a blur behind rofi only (glx backend, everything else is picom's defaults).
 
-Keys and clicks:
+Keys and clicks (the i3 bindings match [[https://github.com/EdwardoSunny/dotfiles_macos][dotfiles_macos]], where held Caps Lock is the same =$mod=):
 | Key / click                        | Action                                              |
 |------------------------------------+-----------------------------------------------------|
 | =$mod+space=                       | App launcher                                        |
@@ -38,6 +38,7 @@ Keys and clicks:
 | Click / right click on mic         | Mute toggle / pavucontrol inputs                    |
 | Click / right click on bluetooth   | bluetui (or blueman) / power on/off                 |
 | Click cpu or mem                   | btop, htop, or top in a terminal                    |
+| =Print= / =$mod+Shift+s=           | Screenshot (flameshot)                              |
 | Hold =Alt+Enter=                   | Dictate with Handy (release to type the text)       |
 | =$mod+Shift+t= / =$mod+Shift+Escape= | Handy hands-free start/stop / cancel              |
 
